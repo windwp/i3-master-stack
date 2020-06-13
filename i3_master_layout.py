@@ -16,13 +16,13 @@ import pprint
 
 from i3_swallow import I3Swallow
 
-# change terminal variable to your default terminal and set your terminal startup position
+# change terminal varible to your default terminal and set your terminal startup position
 terminal            = 'Alacritty'
 screenWidth         = 1300
 screenHeight        = 800
 posX                = 310
 posY                = 160
-limitWindowOnMaster = 2
+limitWindowOnMaster = 1
 isEnableSwallow     = True
 
 
@@ -311,7 +311,6 @@ class I3MasterLayout(object):
                     self.lastSwapNodeId = 0
                     pass
                 else:
-                    print("swap 2")
                     self.lastSwapNodeId = masterNode.id
                     self.swap2Node(masterNode.id, window.id, mark)
             else:
