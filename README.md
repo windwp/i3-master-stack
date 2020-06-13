@@ -27,11 +27,15 @@
 
  `pip3 install i3ipc`
 
+## Run from terminal
+
  download this script and put it to your i3 config folder and run
 
-`chmod +x $HOME/.config/i3/i3-master-slave/i3_master_layout.py`
+`chmod +x ./i3_master_layout.py`
 
-`python3 $HOME/.config/i3/i3-master-slave/i3_master_layout.py`
+`python3 ./i3_master_layout.py`
+
+## Run with i3
 
  put it to your i3 config
 
