@@ -17,11 +17,15 @@ import pprint
 from i3_swallow import I3Swallow
 
 # change terminal variable to your default terminal and set your terminal startup position
+
 terminal            = 'Alacritty'
 screenWidth         = 1300
 screenHeight        = 800
 posX                = 310
 posY                = 160
+
+firstScreenPercent  = 12  # different size between master and slave (unit : ppt)
+
 limitWindowOnMaster = 2
 isEnableSwallow     = True
 
@@ -137,7 +141,7 @@ class I3MasterLayout(object):
         masterNode = self.findChildNodeByMarked(root, workspaceMasterMark)
 
         if(masterNode != None and len(root.nodes) == 1):
-            # check len root.nodes ==1 because i3 will merge the master node to another node
+            # check length root.nodes ==1 because i3 will merge the master node to another node
             # then we need to find a better master node from root nodes
             root = masterNode.parent
         elif (len(root.nodes) > 0):
@@ -251,6 +255,9 @@ class I3MasterLayout(object):
             self.i3.command('[con_id=%s] mark %s' % (
                 firstWindowId, self.getWorkSpaceMark(masterMark, workspace.num)))
             event.container.command('split vertical')
+            if (firstScreenPercent>0):
+                self.i3.command('exec sleep 0.5;[con_id=%s] resize grow width %s px or %s ppt '
+                                % (firstWindowId,firstScreenPercent,firstScreenPercent ))
             pass
         # second node is automatic split vertical
         elif len(window.parent.nodes) == 2 and window.parent.layout == 'splith':
