@@ -9,6 +9,9 @@
 | ------ | ----- |
 ```
 * open first terminal in floating mode and default position 
+    > you don't need to open the first terminal full screen.
+    > It will better if the terminal is display floating center on your screen
+    > when you open another window it will change to tilling mode .
 * swap from any window to master with shorcut `$mod+m`
 * move from any window to master with shorcut `$mod+shift+m`
 * swallow instance 
@@ -61,9 +64,24 @@ limitWindowOnMaster = 2
 isEnableSwallow     = True
 
 ```
+# File manager with swallow 
 
+ file manager is not working with the swallow function. You need to add scripts. 
+ >Example vifm
+ * Copy file [swallow](./swallow) to folder `$HOME/.config/vifm/scripts/`.
+ * Edit /vifmrc 
+    ```
+    filextype *.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm
+            \ {View in feh}
+            \ swallow feh %f,
+            \ {View in gpicview}
+            \ gpicview %c,
+            \ {View in shotwell}
+            \ shotwell,
+    ```
 # TODO
 
-* Swallow on master is bad
-* Swallow use xprop and xdotool then it is slow.
+- [x] Swallow on master is bad
+
+- [ ]  Swallow use xprop and xdotool then it is slow.
 
