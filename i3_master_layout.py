@@ -24,7 +24,7 @@ screenHeight        = 800
 posX                = 310
 posY                = 160
 
-firstScreenPercent  = 12  # different size between master and slave (unit : ppt)
+firstScreenPercent  = 14  # different size between master and slave (unit : ppt)
 
 limitWindowOnMaster = 2
 isEnableSwallow     = True
@@ -306,7 +306,6 @@ class I3MasterLayout(object):
         self.i3.command('[con_id=%s] mark %s' % (node2Id, mark))
 
     def swapMaster(self, event):
-
         window = self.i3.get_tree().find_focused()
         workspace = self.i3.get_tree().find_focused().workspace()
         mark = self.getWorkSpaceMark(masterMark, workspace.num)
@@ -355,9 +354,14 @@ class I3MasterLayout(object):
             isCloseMaster = True
         self.validateMasterAndSlaveNode(workspace)
         if(isCloseMaster):
-            nodeList = self.getAllChildWindow(workspace)
-            if(len(nodeList) > 0):
-                self.i3.command('[con_id=%s] move left' % (nodeList[0].id))
+            focusWindow=self.i3.get_tree().find_focused()
+            if(focusWindow!=None and focusWindow.window!=None):
+                self.i3.command('[con_id=%s] move left' % (focusWindow.id))
+                if (firstScreenPercent>0):
+                    self.i3.command('[con_id=%s] resize grow width %s px or %s ppt '
+                                    % (focusWindow.id,firstScreenPercent,firstScreenPercent ))
+            else:
+                print("focus window null")
 
         pass
 
@@ -379,6 +383,11 @@ class I3MasterLayout(object):
         pass
     pass
 
+    def on_tick(self,event):
+
+        self
+
+
 #End class
 
 
@@ -388,7 +397,7 @@ listHandler = []
 
 
 def on_close(self, event):
-    for handler in reversed(listHandler):
+    for handler in (listHandler):
         handler.on_close(event)
     pass
 
@@ -409,6 +418,12 @@ def on_binding(self, event):
         handler.on_binding(event)
     pass
 
+def on_tick(self,event):
+    for handler in listHandler:
+        handler.on_tick(event)
+
+
+
 
 def main():
     global listHandler
@@ -421,7 +436,7 @@ def main():
     args = parser.parse_args()
 
     masterHander = I3MasterLayout(i3, args.debug)
-    swallowHander = I3Swallow(i3, terminal)
+    swallowHander = I3Swallow(i3, terminal, masterMark,masterHander)
     if(isEnableSwallow):
         listHandler.append(swallowHander)
     listHandler.append(masterHander)
@@ -431,6 +446,7 @@ def main():
     i3.on("window::close", on_close)
     i3.on("window::move", on_move)
     i3.on("binding", on_binding)
+    i3.on("tick", on_tick)
     i3.main()
 
 

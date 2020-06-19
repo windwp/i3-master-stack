@@ -10,10 +10,13 @@ import pprint
 
 
 class I3Swallow(object):
-    def __init__(self, i3, terminal):
+    def __init__(self, i3, terminal,masterTag,masterHander):
         self.i3 = i3
         self.terminal = terminal
+        self.masterTag = masterTag
+        self.masterHandler = masterHander
         self.swallowDict = {}
+        self.nextSwallowId=""
         pass
 
     def unMarkAllNode(self, node, marked):
@@ -31,12 +34,21 @@ class I3Swallow(object):
             self.i3.command('[con_id=%s] mark --add %s' %
                             (node.parent.id, "swallow"+str(node.id)))
             self.i3.command('[con_id=%s] move to scratchpad' % node.id)
+            isMaster=False
+            if(self.masterTag!=None):
+                for mark in node.marks:
+                    if(mark.startswith(self.masterTag)):
+                        print("mark window parent")
+                        isMaster=True
+                        break
+
             self.i3.command('[con_id=%s] focus' % swallowId)
             self.swallowDict[str(swallowId)] = {
                 "id": node.id,
                 "layout": node.layout,
                 "index": node.parent.nodes.index(node),
-                # minus to hided window,
+                "isMaster":isMaster,
+                # minus to hidden window,
                 "parent_nodes": len(node.parent.nodes)-1,
             }
             return True
@@ -58,15 +70,22 @@ class I3Swallow(object):
     def on_new(self, event):
         # if we can find parent have pid  map to any node in workspace we will hide it
         if event.container.name != self.terminal:
+            workspace = self.i3.get_tree().find_focused().workspace()
+            if(self.nextSwallowId != 0):
+                parentContainer = workspace.find_by_window(self.nextSwallowId)
+                if(parentContainer):
+                    self.hideSwallowParent(
+                        parentContainer, self.nextSwallowId, event.container.id)
+                    self.nextSwallowId = 0
+                    return
+
             parentContainerPid = self.getParentNodePid(event.container)
             #id of root
             if(parentContainerPid != "      1" and len(parentContainerPid) < 9):
-                workspace = self.i3.get_tree().find_focused().workspace()
-                parentContainerWid = self.getWindowIdfromPId(
-                    parentContainerPid)
+                parentContainerWid = self.getWindowIdfromPId(parentContainerPid)
                 for item in workspace.nodes:
-                    self.hideSwallowParent(
-                        item, parentContainerWid, event.container.id)
+                    self.hideSwallowParent(item, parentContainerWid, event.container.id)
+        pass
 
     def on_close(self, event):
         swallow = self.swallowDict.get(str(event.container.id))
@@ -88,7 +107,6 @@ class I3Swallow(object):
                                     (parentMarked[0].id, mark))
 
                 if(targetWindow == None and len(parentMarked) > 0 and len(parentMarked[0].nodes) > 0):
-                    # print(' map child node')
                     if (swallow["index"] < len(parentMarked[0].nodes)):
                         targetWindow = parentMarked[0].nodes[swallow['index']]
                 if(targetWindow != None):
@@ -96,6 +114,9 @@ class I3Swallow(object):
                         window.id, targetWindow.id))
                 else:
                     # can't find a good position for it let i3 handler
+                    if(self.masterTag!=None and swallow["isMaster"]==True):
+                        self.masterHandler.swapMaster(event)
+                        # self.i3.command('[con_id=%s] nop swap master' % (window.id))
                     pass
 
                 self.i3.command('[con_id=%s] focus' % (window.id))
@@ -115,4 +136,12 @@ class I3Swallow(object):
                 swallow["parent_nodes"] = len(focusWindow.parent.nodes)
 
     def on_binding(self, event):
+
         pass
+
+    def on_tick(self,event):
+        args=event.payload.split(' ')
+        if(len(args)==2 and args[0]=='swallow'):
+            self.nextSwallowId=int(args[1],16)
+        self
+
