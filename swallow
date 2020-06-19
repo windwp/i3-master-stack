@@ -1,10 +1,5 @@
 #! /bin/bash
-
-file="$HOME/.local/share/unhide"
 app="$1"
-#target="$2"
 tid=$(xdo id)
 i3-msg -t send_tick "swallow ${tid}"
-echo "my code\n"
-echo "$@"
 eval $@
