@@ -1,5 +1,7 @@
 #! /bin/bash
-app="$1"
 tid=$(xdo id)
 i3-msg -t send_tick "swallow ${tid}"
-eval $@
+# escapce special character on path
+printf -v var "%q\n" "$@"
+echo $var
+eval $var
