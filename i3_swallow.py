@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 #-----------------------------------------------
 # used to swallow a terminal window in i3
+# this process is check automatic in i3
+# When i3 have new window it will check parent process 
+# and if it find a parent process have same id in current workspace it will swallow it
 #----------------------------------------------------
 
 import i3ipc
 import subprocess
 from time import sleep
-import pprint
+from pprint import pprint
 
 
 class I3Swallow(object):
@@ -29,31 +32,35 @@ class I3Swallow(object):
                 return True
         return False
 
-    def hideSwallowParent(self, node, windowId, swallowId):
+    def hideSwallowParent(self, node, windowId, swallow):
         if(str(node.window) == str(windowId)):
             self.i3.command('[con_id=%s] mark --add %s' %
                             (node.parent.id, "swallow"+str(node.id)))
             self.i3.command('[con_id=%s] move to scratchpad' % node.id)
+            # check use master layout
+
             isMaster=False
             if(self.masterTag!=None):
                 for mark in node.marks:
                     if(mark.startswith(self.masterTag)):
-                        print("mark window parent")
                         isMaster=True
                         break
-
-            self.i3.command('[con_id=%s] focus' % swallowId)
-            self.swallowDict[str(swallowId)] = {
+            self.i3.command('[con_id=%s] focus' % swallow.id)
+            self.swallowDict[str(swallow.id)] = {
                 "id": node.id,
                 "layout": node.layout,
                 "index": node.parent.nodes.index(node),
-                "isMaster":isMaster,
+                "isMaster": isMaster,
                 # minus to hidden window,
                 "parent_nodes": len(node.parent.nodes)-1,
             }
+
+            if(isMaster==True):
+                self.i3.command('[con_id=%s] resize set %s 0'
+                    % (swallow.id,self.masterHandler.masterWidth ))
             return True
         for node in node.nodes:
-            if(self.hideSwallowParent(node, windowId, swallowId)):
+            if(self.hideSwallowParent(node, windowId, swallow)):
                 return True
         return False
 
@@ -68,23 +75,24 @@ class I3Swallow(object):
         return output
 
     def on_new(self, event):
-        # if we can find parent have pid  map to any node in workspace we will hide it
         if event.container.name != self.terminal:
             workspace = self.i3.get_tree().find_focused().workspace()
             if(self.nextSwallowId != 0):
                 parentContainer = workspace.find_by_window(self.nextSwallowId)
                 if(parentContainer):
                     self.hideSwallowParent(
-                        parentContainer, self.nextSwallowId, event.container.id)
+                        parentContainer, self.nextSwallowId, event.container)
                     self.nextSwallowId = 0
                     return
 
+
+            # if we can find parent node have pid  map to any node in workspace we will hide it
             parentContainerPid = self.getParentNodePid(event.container)
             #id of root
             if(parentContainerPid != "      1" and len(parentContainerPid) < 9):
                 parentContainerWid = self.getWindowIdfromPId(parentContainerPid)
                 for item in workspace.nodes:
-                    self.hideSwallowParent(item, parentContainerWid, event.container.id)
+                    self.hideSwallowParent(item, parentContainerWid, event.container)
         pass
 
     def on_close(self, event):
@@ -113,10 +121,10 @@ class I3Swallow(object):
                     self.i3.command('[con_id=%s] swap container with con_id %d' % (
                         window.id, targetWindow.id))
                 else:
-                    # can't find a good position for it let i3 handler
                     if(self.masterTag!=None and swallow["isMaster"]==True):
                         self.masterHandler.swapMaster(event)
-                        # self.i3.command('[con_id=%s] nop swap master' % (window.id))
+                        pass
+                    # can't find a good position for it let i3 handler
                     pass
 
                 self.i3.command('[con_id=%s] focus' % (window.id))
