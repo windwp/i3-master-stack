@@ -14,7 +14,7 @@ import argparse
 import subprocess
 from pprint import pprint
 from time import sleep
-from i3_swallow import I3Swallow
+import i3_swallow
 
 # change terminal variable to your default terminal and set your terminal startup position
 
@@ -59,7 +59,7 @@ def dumpNode(node):
     return result
 
 
-def dumpWorkSpace(workspace):
+def dumpWorkSpace(workspace: i3ipc.Con):
     result = {}
     result["types"] = workspace["type"]
     result["workspace_layout"] = workspace["workspace_layout"]
@@ -78,13 +78,15 @@ def dumpWorkSpace(workspace):
 
 
 class I3MasterLayout(object):
-    def __init__(self, i3, debug):
+
+    def __init__(self, i3: i3ipc.Con, debug=False):
         self.i3 = i3
         self.masterWidth = 0
         self.debug = debug
         self.lastSwapNodeId = 0
         self.lastJumpNodeId = 0
         self.firstCondId = {}
+        self.callbacks = {}
         pass
 
     def unMarkMasterNode(self, node):
@@ -178,7 +180,7 @@ class I3MasterLayout(object):
                     # we can't find the best slave node
                     pass
 
-        #check master node
+        # check master node
         if(masterNode != None):
             if(root.layout == 'splitv'):
                 # if i3 put the master node to child another node we need to move it to parent node
@@ -219,8 +221,8 @@ class I3MasterLayout(object):
                     if node.id != masterNode.id and node.id != slaveNode.id:
                         self.i3.command('[con_id=%s] move %s to mark %s'
                                         % (node.id,
-                                        "container" if node.window == None else "window",
-                                        self.getWorkSpaceMark(slaveMark, workspace.num)))
+                                           "container" if node.window == None else "window",
+                                           self.getWorkSpaceMark(slaveMark, workspace.num)))
                         if(node.window != None):
                             self.i3.command('[con_id=%s] focus' % (node.id))
 
@@ -265,12 +267,13 @@ class I3MasterLayout(object):
             pass
         # second node is automatic split vertical
         elif (
-                len(window.parent.nodes) == 2 and
-                window.parent.layout == 'splith' and
-                self.getWorkSpaceMark(rootMark, workspace.num)not in window.parent.marks
-              ):
-                event.container.command('split vertical')
-                pass
+            len(window.parent.nodes) == 2 and
+            window.parent.layout == 'splith' and
+            self.getWorkSpaceMark(
+                rootMark, workspace.num)not in window.parent.marks
+        ):
+            event.container.command('split vertical')
+            pass
 
         self.validateMasterAndSlaveNode(workspace)
 
@@ -312,6 +315,7 @@ class I3MasterLayout(object):
                         (node1Id, node2Id))
         self.i3.command('[con_id=%s] unmark %s' % (node1Id, mark))
         self.i3.command('[con_id=%s] mark --add %s' % (node2Id, mark))
+        self.emmit('master_change',node2Id)
 
     def swapMaster(self, event):
         window = self.i3.get_tree().find_focused()
@@ -352,16 +356,34 @@ class I3MasterLayout(object):
                         pass
                     self.lastSwapNodeId = masterNode.id
                     self.swap2Node(masterNode.id, window.id, mark)
-        
+
         pass
+
     def getMasterSize(self):
         window = self.i3.get_tree().find_focused()
         workspace = self.i3.get_tree().find_focused().workspace()
         mark = self.getWorkSpaceMark(masterMark, workspace.num)
         if mark in window.marks:
-            if(len(window.parent.nodes)==2):
-                self.masterWidth=window.rect.width
+            if(len(window.parent.nodes) == 2):
+                self.masterWidth = window.rect.width
+                print("get Size"+str(self.masterWidth))
         pass
+
+    # region Event Handler
+    def on(self, event_name, callback):
+        if self.callbacks is None:
+            self.callbacks = {}
+
+        if event_name not in self.callbacks:
+            self.callbacks[event_name] = [callback]
+        else:
+            self.callbacks[event_name].append(callback)
+
+    def emmit(self, event_name,data=None):
+        if self.callbacks is not None and event_name in self.callbacks:
+            for callback in self.callbacks[event_name]:
+                callback(data)
+    # endregion
 
     def on_close(self, event):
         workspace = self.i3.get_tree().find_focused().workspace()
@@ -374,14 +396,15 @@ class I3MasterLayout(object):
             focusWindow = self.i3.get_tree().find_focused()
             if(focusWindow != None and focusWindow.window != None):
                 self.i3.command('[con_id=%s] move left' % (focusWindow.id))
-                self.i3.command('[con_id=%s] mark %s' % (focusWindow.id,workspaceMasterMark))
+                self.i3.command('[con_id=%s] mark %s' %
+                                (focusWindow.id, workspaceMasterMark))
+                print("set size" + str(self.masterWidth))
                 if(self.masterWidth != 0):
                     self.i3.command('[con_id=%s] resize set %s 0'
-                                    % (focusWindow.id,self.masterWidth ))
+                                    % (focusWindow.id, self.masterWidth))
             else:
                 print("focus window null")
         pass
-
 
     def on_move(self, event):
         pass
@@ -455,7 +478,7 @@ def main():
     args = parser.parse_args()
 
     masterHander = I3MasterLayout(i3, args.debug)
-    swallowHander = I3Swallow(i3, terminal, masterMark, masterHander)
+    swallowHander = i3_swallow.I3Swallow(i3, terminal, masterMark, masterHander)
     if(isEnableSwallow):
         listHandler.append(swallowHander)
     listHandler.append(masterHander)

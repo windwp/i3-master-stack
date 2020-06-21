@@ -10,16 +10,17 @@ import i3ipc
 import subprocess
 from time import sleep
 from pprint import pprint
-
+import i3_master_layout
 
 class I3Swallow(object):
-    def __init__(self, i3, terminal,masterTag,masterHander):
+    def __init__(self, i3, terminal,masterTag,masterHander:i3_master_layout.I3MasterLayout):
         self.i3 = i3
         self.terminal = terminal
         self.masterTag = masterTag
         self.masterHandler = masterHander
         self.swallowDict = {}
-        self.nextSwallowId=""
+        self.nextSwallowId = ""
+        self.masterHandler.on("master_change",self.on_master)
         pass
 
     def unMarkAllNode(self, node, marked):
@@ -32,19 +33,21 @@ class I3Swallow(object):
                 return True
         return False
 
+    def checkNodeIsMater(self,node):
+        if(self.masterTag!=None):
+            for mark in node.marks:
+                if(mark.startswith(self.masterTag)):
+                    return True
+        return False
+
     def hideSwallowParent(self, node, windowId, swallow):
         if(str(node.window) == str(windowId)):
             self.i3.command('[con_id=%s] mark --add %s' %
                             (node.parent.id, "swallow"+str(node.id)))
             self.i3.command('[con_id=%s] move to scratchpad' % node.id)
             # check use master layout
+            isMaster = self.checkNodeIsMater(node)
 
-            isMaster=False
-            if(self.masterTag!=None):
-                for mark in node.marks:
-                    if(mark.startswith(self.masterTag)):
-                        isMaster=True
-                        break
             self.i3.command('[con_id=%s] focus' % swallow.id)
             self.swallowDict[str(swallow.id)] = {
                 "id": node.id,
@@ -55,7 +58,7 @@ class I3Swallow(object):
                 "parent_nodes": len(node.parent.nodes)-1,
             }
 
-            if(isMaster==True):
+            if(isMaster == True):
                 self.i3.command('[con_id=%s] resize set %s 0'
                     % (swallow.id,self.masterHandler.masterWidth ))
             return True
@@ -74,6 +77,15 @@ class I3Swallow(object):
         output = subprocess.getoutput("xdotool search -pid %s" % pid)
         return output
 
+    def on_master(self,newMasterId):
+        for key in self.swallowDict:
+            item = self.swallowDict.get(key)
+            if(item["id"] == newMasterId):
+                item["isMaster"] = True
+            else:
+                item["isMaster"] = False
+        pass
+
     def on_new(self, event):
         if event.container.name != self.terminal:
             workspace = self.i3.get_tree().find_focused().workspace()
@@ -87,6 +99,8 @@ class I3Swallow(object):
 
 
             # if we can find parent node have pid  map to any node in workspace we will hide it
+            # TODO change it to check class name of this application and if that class name belong to a list of swallow name then we will swallow it
+            # the process  for check parent pid is slow
             parentContainerPid = self.getParentNodePid(event.container)
             #id of root
             if(parentContainerPid != "      1" and len(parentContainerPid) < 9):
@@ -105,6 +119,7 @@ class I3Swallow(object):
                 del self.swallowDict[str(event.container.id)]
                 self.i3.command(
                     '[con_id=%s] scratchpad show;floating disable;focus' % (window.id))
+                print(swallow)
                 # try to restore to the original position
                 self.i3.command(
                     '[con_id=%s] move container to mark %s' % (window.id, mark))
@@ -117,11 +132,13 @@ class I3Swallow(object):
                 if(targetWindow == None and len(parentMarked) > 0 and len(parentMarked[0].nodes) > 0):
                     if (swallow["index"] < len(parentMarked[0].nodes)):
                         targetWindow = parentMarked[0].nodes[swallow['index']]
+
                 if(targetWindow != None):
+                    print("index " )
                     self.i3.command('[con_id=%s] swap container with con_id %d' % (
                         window.id, targetWindow.id))
                 else:
-                    if(self.masterTag!=None and swallow["isMaster"]==True):
+                    if(self.masterTag != None and swallow["isMaster"] == True):
                         self.masterHandler.swapMaster(event)
                         pass
                     # can't find a good position for it let i3 handler
@@ -142,6 +159,9 @@ class I3Swallow(object):
                 swallow["layout"] = focusWindow.layout
                 swallow["index"] = focusWindow.parent.nodes.index(focusWindow)
                 swallow["parent_nodes"] = len(focusWindow.parent.nodes)
+                swallow["isMaster"] = self.checkNodeIsMater(focusWindow)
+                pass
+
 
     def on_binding(self, event):
 
