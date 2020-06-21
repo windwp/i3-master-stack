@@ -12,10 +12,18 @@
     > you don't need to open the first terminal full screen.
     > It will better if the terminal is display floating center on your screen
     > when you open another window it will change to tilling mode .
+
+    ![first terminal display](./screenshot/first_terminal.png)
 * swap from any window to master with shorcut `$mod+m`
 * move from any window to master with shorcut `$mod+shift+m`
-* swallow instance 
 
+    ![swap master ](./screenshot/swap_master.gif)
+
+* swallow instance 
+    > this version is focus on i3 master and it is different to another swallow version 
+    > because it will try to restore the original position when you move the swallow instance
+
+    ![swallow vifm](./screenshot/swallow_vifm.gif)
 # Dependencies
 
 1. python3
