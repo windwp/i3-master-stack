@@ -61,6 +61,7 @@
 # Config
 
 open file i3_master_layout and change terminal to your default terminal class `st` or `Alacritty`
+Use `xdotool selectwindow getwindowgeometry` to  change size and get a good postion
 
 ```python
 terminal = 'Alacritty'
