@@ -119,10 +119,10 @@ class I3Swallow(object):
                 del self.swallowDict[str(event.container.id)]
                 self.i3.command(
                     '[con_id=%s] scratchpad show;floating disable;focus' % (window.id))
-                print(swallow)
                 # try to restore to the original position
-                self.i3.command(
-                    '[con_id=%s] move container to mark %s' % (window.id, mark))
+                if(swallow['isMaster']==False):
+                    self.i3.command(
+                        '[con_id=%s] move container to mark %s' % (window.id, mark))
                 parentMarked = workspace.find_marked(mark)
                 targetWindow = None
                 if(len(parentMarked) > 0):
@@ -130,17 +130,17 @@ class I3Swallow(object):
                                     (parentMarked[0].id, mark))
 
                 if(targetWindow == None and len(parentMarked) > 0 and len(parentMarked[0].nodes) > 0):
+                    print("index %s " % swallow["index"])
                     if (swallow["index"] < len(parentMarked[0].nodes)):
                         targetWindow = parentMarked[0].nodes[swallow['index']]
 
                 if(targetWindow != None):
-                    print("index " )
                     self.i3.command('[con_id=%s] swap container with con_id %d' % (
                         window.id, targetWindow.id))
                 else:
-                    if(self.masterTag != None and swallow["isMaster"] == True):
-                        self.masterHandler.swapMaster(event)
-                        pass
+                    # if(self.masterTag != None and swallow["isMaster"] == True):
+                    #     self.masterHandler.swapMaster(event)
+                    #     pass
                     # can't find a good position for it let i3 handler
                     pass
 
