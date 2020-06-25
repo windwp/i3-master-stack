@@ -296,6 +296,7 @@ class I3MasterLayout(object):
                     self
                 self.i3.command('[con_id=%s] unmark %s ' % (masterNode.id, workspaceMasterMark))
                 self.i3.command('[con_id=%s] mark --add %s ' % (window.id, workspaceMasterMark))
+                self.i3.command('[con_id=%s] focus' % (masterNode.id))
                 self.i3.command('[con_id=%s] focus' % (window.id))
             return
 
