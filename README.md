@@ -56,6 +56,8 @@
  bindsym $mod+m nop swap master 
  # go to master node
  bindsym $mod+shift+m nop go master 
+ # enable/disable master layout in current workspace
+ bindsym $mod+shift+m nop master toggle 
 
  ```
 # Config
@@ -71,6 +73,7 @@ posX = 310
 posY = 160
 limitWindowOnMaster = 2
 isEnableSwallow     = True
+isSwapMasterOnNewInstance = True  # new instance on master is change to master
 
 ```
 # File manager with swallow 
@@ -92,5 +95,5 @@ isEnableSwallow     = True
 
 - [x] Swallow on master is bad
 
-- [ ]  Swallow use xprop and xdotool then it is slow.
+- [ ]  Swallow use xprop and xdotool is slow.
 

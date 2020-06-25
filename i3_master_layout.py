@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
 # ---------------------------------------
-# This script will make the first window open with terminal is floating and have fixed
-# windowsize and position
-# When you open a second window it change the first window to normal
-# USAGE
-# add this script to your i3 config
-# exec --no-startup-id python3 $HOME/.config/i3/i3-master-layout.py
-# bindsym $mod+m nop swap master
-# ---------------------------------------
 
 import i3ipc
 import argparse
@@ -23,11 +15,10 @@ screenWidth = 1300
 screenHeight = 800
 posX = 310
 posY = 160
-
 firstScreenPercent = 14  # different size between master and slave (unit : ppt)
-
 limitWindowOnMaster = 2
 isEnableSwallow = True
+isSwapMasterOnNewInstance = True  # new instance on master is change to master
 
 
 rootMark = "root"
@@ -82,11 +73,13 @@ class I3MasterLayout(object):
     def __init__(self, i3: i3ipc.Con, debug=False):
         self.i3 = i3
         self.masterWidth = 0
+        self.isDisable = False
         self.debug = debug
         self.lastSwapNodeId = 0
         self.lastJumpNodeId = 0
-        self.firstCondId = {}
+        self.firstConIds = {}
         self.callbacks = {}
+        self.isSwapMasterOnNewInstance = isSwapMasterOnNewInstance
         pass
 
     def unMarkMasterNode(self, node):
@@ -123,7 +116,7 @@ class I3MasterLayout(object):
                 result = result + self.getAllChildWindow(node)
         return result
 
-    def findChildNodeByMarked(self, node, mark):
+    def findChildNodeByMarked(self, node, mark) -> i3ipc.Con:
         for node in node.nodes:
             if(mark in node.marks):
                 return node
@@ -142,6 +135,7 @@ class I3MasterLayout(object):
         slaveNode = None
         workspaceMasterMark = self.getWorkSpaceMark(masterMark, workspace.num)
         workspaceSlaveMark = self.getWorkSpaceMark(slaveMark, workspace.num)
+        workspaceRootMark = self.getWorkSpaceMark(rootMark,workspace.num)
         masterNode = self.findChildNodeByMarked(root, workspaceMasterMark)
 
         if(masterNode != None and len(root.nodes) == 1):
@@ -172,8 +166,7 @@ class I3MasterLayout(object):
                 masterNode = allChild[0]
                 self.i3.command('[con_id=%s] mark %s' %
                                 (masterNode, workspaceMasterMark))
-                self.i3.command('[con_id=%s] mark %s' % (
-                    root.id, self.getWorkSpaceMark(rootMark, workspace.num)))
+                self.i3.command('[con_id=%s] mark %s' % ( root.id, workspaceRootMark))
                 if(len(root.nodes) > 1):
                     slaveNode = root.nodes[1]
                 else:
@@ -189,6 +182,8 @@ class I3MasterLayout(object):
             if not workspaceMasterMark in masterNode.marks:
                 self.i3.command('[con_id=%s] mark %s' %
                                 (masterNode.id, workspaceMasterMark))
+            if not workspaceRootMark in root.marks:
+                self.i3.command('[con_id=%s] mark %s' % (root.id, workspaceRootMark))
             # check child of masterNode when master is not widow
             if(masterNode.window == None):
                 allChild = self.getAllChildWindow(masterNode)
@@ -199,8 +194,7 @@ class I3MasterLayout(object):
                     # remove all child node on master if have too many
                     for node in allChild[limitWindowOnMaster:]:
                         if(node.window != None):
-                            self.i3.command('[con_id=%s] move window to mark %s' % (
-                                node.id, self.getWorkSpaceMark(slaveMark, workspace.num)))
+                            self.i3.command('[con_id=%s] move window to mark %s' % ( node.id, workspaceSlaveMark))
                             self.i3.command('[con_id=%s] focus' % (node.id))
                     pass
 
@@ -230,9 +224,15 @@ class I3MasterLayout(object):
         pass
 
     def on_new(self, event):
+        if self.isDisable:
+            return
         window = self.i3.get_tree().find_focused()
         workspace = self.i3.get_tree().find_focused().workspace()
-        firstWindowId = self.firstCondId.get(workspace.name)
+        firstWindowId = self.firstConIds.get(workspace.name)
+        workspaceRootMark = self.getWorkSpaceMark(rootMark,workspace.num)
+        workspaceMasterMark = self.getWorkSpaceMark(masterMark,workspace.num)
+        workspaceSlaveMark = self.getWorkSpaceMark(slaveMark,workspace.num)
+
         # print("NEW ===============")
         # print(window.parent.ipc_data)
         # open first node is floating
@@ -243,7 +243,7 @@ class I3MasterLayout(object):
             window.name == terminal and
             len(workspace.floating_nodes) == 0
         ):
-            self.firstCondId[workspace.name] = window.id
+            self.firstConIds[workspace.name] = window.id
             event.container.command('floating enable')
             event.container.command(
                 "exec xdotool windowsize %d %s %s;exec xdotool windowmove %d %s %s"
@@ -255,7 +255,7 @@ class I3MasterLayout(object):
             firstWindowId != None
         ):
             # if seconde node open it change first node to tiling mode
-            del self.firstCondId[workspace.name]
+            del self.firstConIds[workspace.name]
             self.i3.command('[con_id=%s] floating disable' % firstWindowId)
             self.i3.command('[con_id=%s] move left' % firstWindowId)
             self.i3.command('[con_id=%s] mark %s' % (
@@ -264,16 +264,40 @@ class I3MasterLayout(object):
             if (firstScreenPercent > 0):
                 self.i3.command('[con_id=%s] resize grow width %s px or %s ppt '
                                 % (firstWindowId, firstScreenPercent, firstScreenPercent))
+            if(self.isSwapMasterOnNewInstance):
+                self.i3.command('[con_id=%s] makr %s' % (window.parent.id,workspaceRootMark))
+                self.swapMaster(event)
             pass
         # second node is automatic split vertical
         elif (
             len(window.parent.nodes) == 2 and
             window.parent.layout == 'splith' and
-            self.getWorkSpaceMark(
-                rootMark, workspace.num)not in window.parent.marks
+            workspaceRootMark not in window.parent.marks
         ):
             event.container.command('split vertical')
             pass
+
+        # swap master and push master to top of stack of slave nodes
+        if(
+            self.isSwapMasterOnNewInstance and
+           workspaceRootMark in window.parent.marks
+        ):
+            masterNode = self.findChildNodeByMarked(workspace,workspaceMasterMark)
+            slaveNode=self.findChildNodeByMarked(workspace,workspaceSlaveMark)
+            if( masterNode != None ):
+                if(slaveNode != None):
+                    if(len(slaveNode.nodes)>0):
+                        firstNode=slaveNode.nodes[0]
+                        self.i3.command('[con_id=%s] focus' % (firstNode.id))
+                        self.i3.command('[con_id=%s] move window to mark %s' % (masterNode.id, workspaceSlaveMark))
+                        self.i3.command('[con_id=%s] swap container with con_id %d'
+                                        %  (masterNode.id, firstNode.id))
+                        pass
+                    self
+                self.i3.command('[con_id=%s] unmark %s ' % (masterNode.id, workspaceMasterMark))
+                self.i3.command('[con_id=%s] mark --add %s ' % (window.id, workspaceMasterMark))
+                self.i3.command('[con_id=%s] focus' % (window.id))
+            return
 
         self.validateMasterAndSlaveNode(workspace)
 
@@ -366,7 +390,6 @@ class I3MasterLayout(object):
         if mark in window.marks:
             if(len(window.parent.nodes) == 2):
                 self.masterWidth = window.rect.width
-                print("get Size"+str(self.masterWidth))
         pass
 
     # region Event Handler
@@ -386,6 +409,8 @@ class I3MasterLayout(object):
     # endregion
 
     def on_close(self, event):
+        if self.isDisable:
+            return
         workspace = self.i3.get_tree().find_focused().workspace()
         workspaceMasterMark = self.getWorkSpaceMark(masterMark, workspace.num)
         isCloseMaster = False
@@ -398,7 +423,6 @@ class I3MasterLayout(object):
                 self.i3.command('[con_id=%s] move left' % (focusWindow.id))
                 self.i3.command('[con_id=%s] mark %s' %
                                 (focusWindow.id, workspaceMasterMark))
-                print("set size" + str(self.masterWidth))
                 if(self.masterWidth != 0):
                     self.i3.command('[con_id=%s] resize set %s 0'
                                     % (focusWindow.id, self.masterWidth))
@@ -412,9 +436,12 @@ class I3MasterLayout(object):
     def on_binding(self, event):
         workspace = self.i3.get_tree().find_focused().workspace()
         self.validateMasterAndSlaveNode(workspace)
-        if(event.ipc_data["binding"]["command"].strip() == "nop swap master"):
+        command = event.ipc_data["binding"]["command"].strip()
+        if(command == "nop swap master"):
             self.swapMaster(event)
-        elif(event.ipc_data["binding"]["command"].strip() == "nop go master"):
+        elif(command == "nop master toggle"):
+            self.isDisable = not self.isDisable
+        elif(command == "nop go master"):
             self.gotoMaster(event)
         elif("resize" in event.ipc_data["binding"]["command"]):
             self.getMasterSize()
@@ -429,6 +456,9 @@ class I3MasterLayout(object):
 
         self
 
+    def on_focus(self, event):
+
+        self
 
 # End class
 
@@ -453,6 +483,11 @@ def on_new(self, event):
 def on_move(self, event):
     for handler in listHandler:
         handler.on_move(event)
+    pass
+
+def on_focus(self, event):
+    for handler in listHandler:
+        handler.on_focus(event)
     pass
 
 
@@ -485,6 +520,7 @@ def main():
     # Subscribe to events
 
     i3.on("window::new", on_new)
+    i3.on("window::focus", on_focus)
     i3.on("window::close", on_close)
     i3.on("window::move", on_move)
     i3.on("binding", on_binding)

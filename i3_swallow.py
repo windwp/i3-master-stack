@@ -167,6 +167,9 @@ class I3Swallow(object):
 
         pass
 
+    def on_focus(self, event):
+
+        pass
     def on_tick(self,event):
         args=event.payload.split(' ')
         if(len(args)==2 and args[0]=='swallow'):
