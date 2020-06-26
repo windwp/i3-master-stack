@@ -281,7 +281,8 @@ class I3MasterLayout(object):
         # swap master and push master to top of stack of slave nodes
         if(
             self.isSwapMasterOnNewInstance and
-           workspaceRootMark in window.parent.marks
+            window.name == terminal and
+            workspaceRootMark in window.parent.marks
         ):
             if self.isSwallowNext:
                 self.isSwallowNext = False
