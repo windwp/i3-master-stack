@@ -80,6 +80,7 @@ class I3MasterLayout(object):
         self.firstConIds = {}
         self.callbacks = {}
         self.isSwapMasterOnNewInstance = isSwapMasterOnNewInstance
+        self.isSwallowNext = False
         pass
 
     def unMarkMasterNode(self, node):
@@ -282,23 +283,28 @@ class I3MasterLayout(object):
             self.isSwapMasterOnNewInstance and
            workspaceRootMark in window.parent.marks
         ):
-            masterNode = self.findChildNodeByMarked(workspace,workspaceMasterMark)
-            slaveNode=self.findChildNodeByMarked(workspace,workspaceSlaveMark)
-            if( masterNode != None ):
-                if(slaveNode != None):
-                    if(len(slaveNode.nodes)>0):
-                        firstNode=slaveNode.nodes[0]
-                        self.i3.command('[con_id=%s] focus' % (firstNode.id))
-                        self.i3.command('[con_id=%s] move window to mark %s' % (masterNode.id, workspaceSlaveMark))
-                        self.i3.command('[con_id=%s] swap container with con_id %d'
-                                        %  (masterNode.id, firstNode.id))
-                        pass
-                    self
-                self.i3.command('[con_id=%s] unmark %s ' % (masterNode.id, workspaceMasterMark))
-                self.i3.command('[con_id=%s] mark --add %s ' % (window.id, workspaceMasterMark))
-                self.i3.command('[con_id=%s] focus' % (masterNode.id))
-                self.i3.command('[con_id=%s] focus' % (window.id))
-            return
+            if self.isSwallowNext:
+                self.isSwallowNext = False
+                pass
+            else:
+                masterNode = self.findChildNodeByMarked(workspace,workspaceMasterMark)
+                slaveNode=self.findChildNodeByMarked(workspace,workspaceSlaveMark)
+                if( masterNode != None ):
+                    if(slaveNode != None):
+                        if(len(slaveNode.nodes)>0):
+                            firstNode=slaveNode.nodes[0]
+                            self.i3.command('[con_id=%s] focus' % (firstNode.id))
+                            self.i3.command('[con_id=%s] move window to mark %s' % (masterNode.id, workspaceSlaveMark))
+                            self.i3.command('[con_id=%s] swap container with con_id %d'
+                                            %  (masterNode.id, firstNode.id))
+                            pass
+                        self
+                    self.i3.command('[con_id=%s] unmark %s ' % (masterNode.id, workspaceMasterMark))
+                    self.i3.command('[con_id=%s] mark --add %s ' % (window.id, workspaceMasterMark))
+                    self.i3.command('[con_id=%s] focus' % (masterNode.id))
+                    self.i3.command('[con_id=%s] focus' % (window.id))
+                    self.lastSwapNodeId = masterNode.id
+                return
 
         self.validateMasterAndSlaveNode(workspace)
 

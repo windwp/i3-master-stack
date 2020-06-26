@@ -57,7 +57,7 @@
  # go to master node
  bindsym $mod+shift+m nop go master 
  # enable/disable master layout in current workspace
- bindsym $mod+shift+m nop master toggle 
+ bindsym $mod+alt+m nop master toggle 
 
  ```
 # Config

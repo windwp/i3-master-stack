@@ -12,15 +12,16 @@ from time import sleep
 from pprint import pprint
 import i3_master_layout
 
+
 class I3Swallow(object):
-    def __init__(self, i3, terminal,masterTag,masterHander:i3_master_layout.I3MasterLayout):
+    def __init__(self, i3, terminal, masterTag, masterHander: i3_master_layout.I3MasterLayout):
         self.i3 = i3
         self.terminal = terminal
         self.masterTag = masterTag
         self.masterHandler = masterHander
         self.swallowDict = {}
         self.nextSwallowId = ""
-        self.masterHandler.on("master_change",self.on_master)
+        self.masterHandler.on("master_change", self.on_master)
         pass
 
     def unMarkAllNode(self, node, marked):
@@ -33,8 +34,8 @@ class I3Swallow(object):
                 return True
         return False
 
-    def checkNodeIsMater(self,node):
-        if(self.masterTag!=None):
+    def checkNodeIsMater(self, node):
+        if(self.masterTag != None):
             for mark in node.marks:
                 if(mark.startswith(self.masterTag)):
                     return True
@@ -60,7 +61,8 @@ class I3Swallow(object):
 
             if(isMaster == True):
                 self.i3.command('[con_id=%s] resize set %s 0'
-                    % (swallow.id,self.masterHandler.masterWidth ))
+                                % (swallow.id, self.masterHandler.masterWidth))
+            self.masterHandler.isSwallowNext = True
             return True
         for node in node.nodes:
             if(self.hideSwallowParent(node, windowId, swallow)):
@@ -77,7 +79,7 @@ class I3Swallow(object):
         output = subprocess.getoutput("xdotool search -pid %s" % pid)
         return output
 
-    def on_master(self,newMasterId):
+    def on_master(self, newMasterId):
         for key in self.swallowDict:
             item = self.swallowDict.get(key)
             if(item["id"] == newMasterId):
@@ -97,16 +99,17 @@ class I3Swallow(object):
                     self.nextSwallowId = 0
                     return
 
-
             # if we can find parent node have pid  map to any node in workspace we will hide it
             # TODO change it to check class name of this application and if that class name belong to a list of swallow name then we will swallow it
             # the process  for check parent pid is slow
             parentContainerPid = self.getParentNodePid(event.container)
             #id of root
             if(parentContainerPid != "      1" and len(parentContainerPid) < 9):
-                parentContainerWid = self.getWindowIdfromPId(parentContainerPid)
+                parentContainerWid = self.getWindowIdfromPId(
+                    parentContainerPid)
                 for item in workspace.nodes:
-                    self.hideSwallowParent(item, parentContainerWid, event.container)
+                    self.hideSwallowParent(
+                        item, parentContainerWid, event.container)
         pass
 
     def on_close(self, event):
@@ -120,7 +123,7 @@ class I3Swallow(object):
                 self.i3.command(
                     '[con_id=%s] scratchpad show;floating disable;focus' % (window.id))
                 # try to restore to the original position
-                if(swallow['isMaster']==False):
+                if(swallow['isMaster'] == False):
                     self.i3.command(
                         '[con_id=%s] move container to mark %s' % (window.id, mark))
                 parentMarked = workspace.find_marked(mark)
@@ -162,7 +165,6 @@ class I3Swallow(object):
                 swallow["isMaster"] = self.checkNodeIsMater(focusWindow)
                 pass
 
-
     def on_binding(self, event):
 
         pass
@@ -170,9 +172,9 @@ class I3Swallow(object):
     def on_focus(self, event):
 
         pass
-    def on_tick(self,event):
-        args=event.payload.split(' ')
-        if(len(args)==2 and args[0]=='swallow'):
-            self.nextSwallowId=int(args[1],16)
-        self
 
+    def on_tick(self, event):
+        args = event.payload.split(' ')
+        if(len(args) == 2 and args[0] == 'swallow'):
+            self.nextSwallowId = int(args[1], 16)
+        self
