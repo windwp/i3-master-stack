@@ -4,26 +4,32 @@
 import i3ipc
 import argparse
 import subprocess
+import os
+import configparser
+import shutil
 from pprint import pprint
 from time import sleep
 import i3_swallow
 # change terminal variable to your default terminal and set your terminal startup position
 
-terminal = 'Alacritty'
-screenWidth = 1300
-screenHeight = 800
-posX = 310
-posY = 160
-firstScreenPercent = 14  # different size between master and slave (unit : ppt)
-limitWindowOnMaster = 1
-isEnableSwallow = True
-isSwapMasterOnNewInstance = True  # new instance on master is change to master
 
 
 rootMark = "root"
 masterMark = "master"
 slaveMark = "slave"
 
+class I3MasterConfig(object):
+    def __init__(self):
+        self.terminal = 'Alacritty'
+        self.screenWidth = 1300
+        self.screenHeight = 800
+        self.posX = 310
+        self.posY = 160
+        self.firstScreenPercent = 14  # different size between master and slave (unit : ppt)
+        self.limitWindowOnMaster = 2
+        self.isEnableSwallow = True
+        self.isSwapMasterOnNewInstance = True  # new instance on master is change to master
+    pass
 
 def dumpNode(node):
     result = {}
@@ -63,6 +69,7 @@ def dumpWorkSpace(workspace: i3ipc.Con):
         for node in workspace["floating_nodes"]:
             result["floating_nodes"].append(dumpNode(node))
             pass
+    pass
     pprint(workspace)
     pprint(result)
 
@@ -84,13 +91,14 @@ class WorkspaceData(object):
 
 class I3MasterLayout(object):
 
-    def __init__(self, i3: i3ipc.Con, debug=False):
+    def __init__(self, i3: i3ipc.Con, config: I3MasterConfig, debug=False):
         self.i3 = i3
         self.masterWidth = 0
+        self.config=config
         self.debug = debug
         self.callbacks = {}
         self.workSpaceDatas = {}
-        self.isSwapMasterOnNewInstance = isSwapMasterOnNewInstance
+        self.isSwapMasterOnNewInstance = self.config.isSwapMasterOnNewInstance
         self.isSwallowNext = False
         pass
 
@@ -207,11 +215,11 @@ class I3MasterLayout(object):
             if(masterNode.window == None):
                 allChild = self.getAllChildWindow(masterNode)
                 if(
-                    len(allChild) > limitWindowOnMaster and
+                    len(allChild) > self.config.limitWindowOnMaster and
                     slaveNode != None
                 ):
                     # remove all child node on master if have too many
-                    for node in allChild[limitWindowOnMaster:]:
+                    for node in allChild[self.config.limitWindowOnMaster:]:
                         if(node.window != None):
                             self.i3.command('[con_id=%s] move window to mark %s' % (
                                 node.id, workspaceData.slaveMark))
@@ -258,7 +266,7 @@ class I3MasterLayout(object):
         if (
             len(workspace.nodes) == 1 and
             len(workspace.nodes[0].nodes) == 0 and
-            window.name == terminal and
+            window.name == self.config.terminal and
             len(workspace.floating_nodes) == 0
         ):
             workspaceData.firstConId = window.id
@@ -266,7 +274,7 @@ class I3MasterLayout(object):
             event.container.command('floating enable')
             event.container.command(
                 "exec xdotool windowsize %d %s %s;exec xdotool windowmove %d %s %s"
-                % (window.window, screenWidth, screenHeight, window.window, posX, posY))
+                % (window.window, self.config.screenWidth, self.config.screenHeight, window.window, self.config.posX, self.config.posY))
 
         if (
             len(workspace.floating_nodes) == 1 and
@@ -280,9 +288,9 @@ class I3MasterLayout(object):
             self.i3.command('[con_id=%s] mark %s' % (
                 firstWindowId, self.getWorkSpaceMark(masterMark, workspace.num)))
             event.container.command('split vertical')
-            if (firstScreenPercent > 0):
+            if (self.config.firstScreenPercent > 0):
                 self.i3.command('[con_id=%s] resize grow width %s px or %s ppt '
-                                % (firstWindowId, firstScreenPercent, firstScreenPercent))
+                                % (firstWindowId, self.config.firstScreenPercent, self.config.firstScreenPercent))
             if(self.isSwapMasterOnNewInstance):
                 self.i3.command('[con_id=%s] mark %s' %
                                 (window.parent.id, workspaceData.rootMark))
@@ -395,7 +403,7 @@ class I3MasterLayout(object):
             workspace, workspaceData.masterMark)
         if(masterNode != None):
             lastSwapNodeId = workspaceData.swapNodeId
-            if(limitWindowOnMaster == 1 or len(masterNode.nodes) == 0):
+            if(self.config.limitWindowOnMaster == 1 or len(masterNode.nodes) == 0):
                 if(lastSwapNodeId != 0 and workspaceData.masterMark in window.marks):
                     self.swap2Node(
                         masterNode.id, lastSwapNodeId, workspaceData)
@@ -415,7 +423,7 @@ class I3MasterLayout(object):
                     if(lastSwapNodeId != 0):
                         self.swap2Node(
                             window.id, lastSwapNodeId, workspaceData)
-                        workspaceData.swapNodeId = 0
+                        # workspaceData.swapNodeId = 0
                     else:
                         for node in childs:
                             if(node.id != window.id):
@@ -432,7 +440,7 @@ class I3MasterLayout(object):
 
     def getMasterSize(self):
         window = self.i3.get_tree().find_focused()
-        workspace = self.i3.get_tree().find_focused().workspace()
+        workspace = window.workspace()
         workspaceData = self.getWorkSpaceData(workspace.num)
         if (
             workspaceData.masterMark in window.marks and
@@ -442,6 +450,14 @@ class I3MasterLayout(object):
             workspaceData.masterWidth = int(window.rect.width)
         pass
 
+    def resizeMaster(self,condId:int):
+        window = self.i3.get_tree().find_focused()
+        workspace = window.workspace()
+        workspaceData = self.getWorkSpaceData(workspace.num)
+        if(workspaceData.masterWidth>0):
+            self.i3.command('[con_id=%s] resize set %s 0'
+                            % (condId, workspaceData.masterWidth))
+        pass
     # region Event Handler
     def on(self, event_name, callback):
         if self.callbacks is None:
@@ -527,6 +543,7 @@ class I3MasterLayout(object):
 i3 = i3ipc.Connection()
 
 listHandler = []
+masterConfig= I3MasterConfig()
 
 
 def on_close(self, event):
@@ -566,6 +583,7 @@ def on_tick(self, event):
 
 def main():
     global listHandler
+    global masterConfig
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--debug',
@@ -574,10 +592,10 @@ def main():
     )
     args = parser.parse_args()
 
-    masterHander = I3MasterLayout(i3, args.debug)
+    masterHander = I3MasterLayout(i3, masterConfig, args.debug)
     swallowHander = i3_swallow.I3Swallow(
-        i3, terminal, masterMark, masterHander)
-    if(isEnableSwallow):
+        i3, masterConfig.isEnableSwallow, masterMark, masterHander)
+    if(masterConfig.isEnableSwallow):
         listHandler.append(swallowHander)
     listHandler.append(masterHander)
     # Subscribe to events
@@ -590,6 +608,29 @@ def main():
     i3.on("tick", on_tick)
     i3.main()
 
+def readConfig():
+    config_path='%s/.config/i3/i3_master.ini' % os.environ['HOME']
+    dir= os.path.dirname(os.path.realpath(__file__))
+    if not os.path.isfile(config_path):
+        print("No config file in.")
+        # copy file
+        shutil.copy(dir+"/i3_master.ini", config_path)
+        pass
+    config=configparser.ConfigParser()
+    config.read(config_path)
+    global masterConfig
+    configData = config['config']
+    if(configData!=None):
+        masterConfig.posX = configData.getint('posX', fallback=masterConfig.posX)
+        masterConfig.posY = configData.getint('posY', fallback=masterConfig.posY)
+        masterConfig.screenWidth = configData.getint('screenWidth', fallback=masterConfig.screenWidth)
+        masterConfig.screenHeight = configData.getint('screenHeight', fallback=masterConfig.screenHeight)
+        masterConfig.isEnableSwallow = configData.getboolean('swallow', fallback=masterConfig.isEnableSwallow)
+        masterConfig.isSwapMasterOnNewInstance = configData.getboolean('slaveStack', fallback=masterConfig.isEnableSwallow)
+        masterConfig.firstScreenPercent=configData.getint('masterSizePlus',fallback=14)
+        masterConfig.limitWindowOnMaster=configData.get('limitWindowOnMaster',fallback=masterConfig.limitWindowOnMaster)
+    pass
 
 if __name__ == "__main__":
+    readConfig()
     main()

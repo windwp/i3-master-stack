@@ -60,9 +60,8 @@ class I3Swallow(object):
             }
 
             if(isMaster == True):
-                self.i3.command('[con_id=%s] resize set %s 0'
-                                % (swallow.id, self.masterHandler.masterWidth))
-            self.masterHandler.isSwallowNext = True
+                self.masterHandler.resizeMaster(swallow.id)
+                self.masterHandler.isSwallowNext = True
             return True
         for node in node.nodes:
             if(self.hideSwallowParent(node, windowId, swallow)):
@@ -140,9 +139,6 @@ class I3Swallow(object):
                     self.i3.command('[con_id=%s] swap container with con_id %d' % (
                         window.id, targetWindow.id))
                 else:
-                    # if(self.masterTag != None and swallow["isMaster"] == True):
-                    #     self.masterHandler.swapMaster(event)
-                    #     pass
                     # can't find a good position for it let i3 handler
                     pass
 
