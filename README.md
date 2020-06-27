@@ -30,7 +30,7 @@
 2. [i3ipc-python](https://github.com/altdesktop/i3ipc-python)
 3. xdotool
 4. xprop
-5. xdo
+5. xdo 
 
 
 # Install
@@ -66,21 +66,27 @@
 
  ```
 # Config
+run script first and it will create default config file 
 
-open file i3_master_layout and change terminal to your default terminal class `st` or `Alacritty`
-Use `xdotool selectwindow getwindowgeometry` to  change size and get a good postion
+`$HOME/.config/i3/i3_master.ini`
 
-```python
+```ini
+[config]
 terminal = 'Alacritty'
 screenWidth = 1300
 screenHeight = 800
 posX = 310
 posY = 160
-limitWindowOnMaster = 2
-isEnableSwallow     = True
-isSwapMasterOnNewInstance = True  # new instance on master is change to master
+swallow = true
 
+; different size between master and slave (unit : ppt)
+masterSizePlus = 14  
+
+; new instance on master wll change to master
+slaveStack = true  
 ```
+> Note:  Use `xdotool selectwindow getwindowgeometry` to change size and get a good postion
+
 # File manager with swallow 
 
  file manager is not working with the swallow function. You need to add scripts. 
