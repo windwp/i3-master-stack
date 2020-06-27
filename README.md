@@ -30,6 +30,7 @@
 2. [i3ipc-python](https://github.com/altdesktop/i3ipc-python)
 3. xdotool
 4. xprop
+5. xdo
 
 
 # Install
@@ -45,13 +46,17 @@
 `chmod +x ./i3_master_layout.py`
 
 `python3 ./i3_master_layout.py`
+ 
+ you can run it use bash file [i3_master](./i3_master)
+
+ `./i3_master`
 
 ## Run with i3
 
  put it to your i3 config
 
 ```bash
- exec --no-startup-id python3 $HOME/.config/i3/i3-master-slave/i3-master-layout.py
+ exec --no-startup-id python3 $HOME/.config/i3/i3-master-slave/i3-master
  # swap to master node
  bindsym $mod+m nop swap master 
  # go to master node

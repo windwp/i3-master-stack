@@ -133,7 +133,6 @@ class I3Swallow(object):
                                     (parentMarked[0].id, mark))
 
                 if(targetWindow == None and len(parentMarked) > 0 and len(parentMarked[0].nodes) > 0):
-                    print("index %s " % swallow["index"])
                     if (swallow["index"] < len(parentMarked[0].nodes)):
                         targetWindow = parentMarked[0].nodes[swallow['index']]
 
