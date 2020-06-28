@@ -360,7 +360,8 @@ class I3MasterLayout(object):
         masterNode = self.findChildNodeByMarked(
             workspace, workspaceData.masterMark)
         if(masterNode != None):
-            if(self.lastSwapNodeId != 0):
+            lastSwapNodeId = workspaceData.swapNodeId
+            if(lastSwapNodeId != 0):
                 isInMaster = masterNode.window != None and (
                     workspaceData.masterMark in window.marks)
                 if(isInMaster == False):
@@ -372,15 +373,15 @@ class I3MasterLayout(object):
                 pass
                 if(isInMaster):
                     self.i3.command('[con_id=%s] focus' %
-                                    (self.lastSwapNodeId))
-                    self.lastSwapNodeId = 0
+                                    (lastSwapNodeId))
+                    workspace.swapNodeId = 0
                     return
             if(masterNode.window != None):
                 self.i3.command('[con_id=%s] focus' % (masterNode.id))
-                self.lastSwapNodeId = window.id
+                workspace.swapNodeId = window.id
             if(len(masterNode.nodes) > 0 and masterNode.nodes[0].window != None):
                 self.i3.command('[con_id=%s] focus' % (masterNode.nodes[0].id))
-                self.lastSwapNodeId = window.id
+                workspace.swapNodeId = window.id
             pass
     pass
 
