@@ -20,7 +20,7 @@ class I3Swallow(object):
         self.masterTag = masterTag
         self.masterHandler = masterHander
         self.swallowDict = {}
-        self.nextSwallowId = ""
+        self.nextSwallowId = 0 
         self.masterHandler.on("master_change", self.on_master)
         pass
 
@@ -92,12 +92,13 @@ class I3Swallow(object):
             workspace = self.i3.get_tree().find_focused().workspace()
             if(self.nextSwallowId != 0):
                 parentContainer = workspace.find_by_window(self.nextSwallowId)
-                if(parentContainer):
+                if(parentContainer != None):
                     self.hideSwallowParent(
                         parentContainer, self.nextSwallowId, event.container)
                     self.nextSwallowId = 0
                     return
 
+            self.nextSwallowId = 0
             # if we can find parent node have pid  map to any node in workspace we will hide it
             # TODO change it to check class name of this application and if that class name belong to a list of swallow name then we will swallow it
             # the process  for check parent pid is slow
@@ -171,5 +172,8 @@ class I3Swallow(object):
     def on_tick(self, event):
         args = event.payload.split(' ')
         if(len(args) == 2 and args[0] == 'swallow'):
-            self.nextSwallowId = int(args[1], 16)
+            try:
+                self.nextSwallowId = int(args[1], 16)
+            except Exception as e:
+                print("id not valid %s" % args[1])
         self

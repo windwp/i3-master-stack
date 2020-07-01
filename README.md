@@ -66,8 +66,7 @@
 
  ```
 # Config
-run script first and it will create default config file 
-
+run script first and it will create a config file at
 `$HOME/.config/i3/i3_master.ini`
 
 ```ini
@@ -85,7 +84,8 @@ masterSizePlus = 14
 ; new instance on master wll change to master
 slaveStack = true  
 ```
-> Note:  Use `xdotool selectwindow getwindowgeometry` to change size and get a good postion
+
+> Note:  Use `xdotool selectwindow getwindowgeometry`  change size and get a good postion on floating window
 
 # File manager with swallow 
 

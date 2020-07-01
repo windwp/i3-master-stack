@@ -1,19 +1,28 @@
 #!/bin/bash
+# use AG search with rofi
 
-TMP_DIR="/tmp/rofi/${USER}/"
-
+#------------ CONFIG ----------------#
 
 SEARCH_DIRECTORY="$HOME/Desktop"
-MY_PATH="$(dirname "${0}")"
-HIST_FILE="${TMP_DIR}/history.txt"
+FOLDER_DISPLAY=(
+    "~/Downloads"
+    "~/Documents"
+)
 
 OPENER=xdg-open
 TERM_EMU=alacritty
 TEXT_EDITOR=nvim
-FILE_MANAGER=vifm
+FILE_MANAGER="$HOME/.config/vifm/scripts/vifmrun "
 
+#------------ CONFIG ----------------#
+
+
+MY_PATH="$(dirname "${0}")"
 AG_TEXT_QUERY="--column --noheading --follow --depth 5"
 AG_FILE_QUERY='-g "" --follow' 
+
+TMP_DIR="/tmp/rofi/${USER}/"
+HIST_FILE="${TMP_DIR}/history.txt"
 
  VIM_OPEN_EXT=(
 "html"
@@ -31,10 +40,6 @@ AG_FILE_QUERY='-g "" --follow'
 "jsx"
 )
 
-FOLDER_DISPLAY=(
-    "~/Downloads"
-    "~/Documents"
-)
 
 
 if [ ! -d "${TMP_DIR}" ]
@@ -83,6 +88,13 @@ function searchAgFile(){
     mapfile -t AG_RESULT < <(eval $query)
     index=1
     cat /dev/null > $HIST_FILE
+    for folder in  "${FOLDER_DISPLAY[@]}"; do
+        printf -v j "%02d" $index
+        COMMAND="$j:${folder}:a"
+        echo $COMMAND >> $HIST_FILE
+        echo $COMMAND
+        index=$((index + 1))
+    done
     for s in "${AG_RESULT[@]}"; do
         if [[  ${#s} -ge ${#SEARCH_DIRECTORY}+3  ]]; then
             printf -v j "%02d" $index
@@ -91,13 +103,6 @@ function searchAgFile(){
             echo $COMMAND
             index=$((index + 1))
         fi
-    done
-    for folder in  "${FOLDER_DISPLAY[@]}"; do
-        printf -v j "%02d" $index
-        COMMAND="$j:${folder}:a"
-        echo $COMMAND >> $HIST_FILE
-        echo $COMMAND
-        index=$((index + 1))
     done
 }
 
