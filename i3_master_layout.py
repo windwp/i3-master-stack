@@ -77,7 +77,6 @@ def dumpWorkSpace(workspace: i3ipc.Con):
 class WorkspaceData(object):
     def __init__(self, num: int):
         self.num = num
-        self.firstConId = 0
         self.swapNodeId = 0
         self.masterWidth = 0
         self.callback = None
@@ -257,7 +256,6 @@ class I3MasterLayout(object):
         if workspaceData.isDisable:
             return
         window = self.i3.get_tree().find_focused()
-        firstWindowId = workspaceData.firstConId
 
         # print("NEW ===============")
         # pprint(vars(workspaceData))
@@ -269,7 +267,6 @@ class I3MasterLayout(object):
             window.name == self.config.terminal and
             len(workspace.floating_nodes) == 0
         ):
-            workspaceData.firstConId = window.id
             workspaceData.masterWidth = 0
             event.container.command('floating enable')
             event.container.command(
@@ -278,11 +275,11 @@ class I3MasterLayout(object):
 
         if (
             len(workspace.floating_nodes) == 1 and
-            len(workspace.nodes) == 1 and
-            firstWindowId != 0
+            len(workspace.floating_nodes[0].nodes) == 1 and
+            len(workspace.nodes) == 1 
         ):
             # if seconde node open it change first node to tiling mode
-            workspaceData.firstConId = 0
+            firstWindowId = workspace.floating_nodes[0].nodes[0].id
             self.i3.command('[con_id=%s] floating disable' % firstWindowId)
             self.i3.command('[con_id=%s] move left' % firstWindowId)
             self.i3.command('[con_id=%s] mark %s' % (
