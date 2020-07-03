@@ -276,7 +276,8 @@ class I3MasterLayout(object):
         if (
             len(workspace.floating_nodes) == 1 and
             len(workspace.floating_nodes[0].nodes) == 1 and
-            len(workspace.nodes) == 1 
+            len(workspace.nodes) == 1 and
+            workspace.floating_nodes[0].nodes[0].id != window.id
         ):
             # if seconde node open it change first node to tiling mode
             firstWindowId = workspace.floating_nodes[0].nodes[0].id
