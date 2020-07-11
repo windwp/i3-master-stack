@@ -347,7 +347,6 @@ class I3MasterLayout(object):
                     self.i3.command('[con_id=%s] mark %s' %
                                     (window.id, workspaceData.masterMark))
                     if(workspaceData.masterWidth != 0):
-                        print("resize")
                         self.i3.command('[con_id=%s] resize set %s 0'
                                         % (window.id, workspaceData.masterWidth))
                     self.i3.command('[con_id=%s] focus' % (masterNode.id))
