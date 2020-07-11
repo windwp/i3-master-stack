@@ -1,44 +1,48 @@
 #!/bin/bash
 # use AG search with rofi
-
+# 
 #------------ CONFIG ----------------#
-
+# It support search text in symlink folder so you can add your symlink to this folder
 SEARCH_DIRECTORY="$HOME/Desktop"
-FOLDER_DISPLAY=(
+
+DIRECTORY_SHORTCUT=(
     "~/Downloads"
     "~/Documents"
 )
 
 OPENER=xdg-open
-TERM_EMU=alacritty
+# load terminal with zsh shell.
+# I need load shell because my nodejs config and pywall theme for vifm :) 
+# change to kitty by `kitty -e`
+TERM_SHEL="alacritty -e /bin/zsh -i -c" 
 TEXT_EDITOR=nvim
 FILE_MANAGER="$HOME/.config/vifm/scripts/vifmrun "
 
+VIM_OPEN_EXT=(
+    "html"
+    "md"
+    "py"
+    "go"
+    "rb"
+    "php"
+    "lua"
+    "sh"
+    "cs"
+    "txt"
+    "ts"
+    "js"
+    "jsx"
+)
+
 #------------ CONFIG ----------------#
 
-
-MY_PATH="$(dirname "${0}")"
 AG_TEXT_QUERY="--column --noheading --follow --depth 5"
 AG_FILE_QUERY='-g "" --follow' 
 
+# MY_PATH="$(dirname "${0}")"
 TMP_DIR="/tmp/rofi/${USER}/"
 HIST_FILE="${TMP_DIR}/history.txt"
 
- VIM_OPEN_EXT=(
-"html"
-"md"
-"py"
-"go"
-"rb"
-"php"
-"lua"
-"sh"
-"cs"
-"txt"
-"ts"
-"js"
-"jsx"
-)
 
 
 
@@ -59,8 +63,9 @@ function mExit(){
 
 function searchAgText(){
     isValid=0
-    query="ag $@ $AG_TEXT_QUERY $SEARCH_DIRECTORY "
+    query=$@
     if [[ ${#query} -ge 3 ]]; then
+        query="ag $@ $AG_TEXT_QUERY $SEARCH_DIRECTORY "
         mapfile -t AG_RESULT < <(eval $query)
         index=1
         cat /dev/null > $HIST_FILE
@@ -76,8 +81,8 @@ function searchAgText(){
         done
     fi
     
-    if [[ isValid == 0 ]]; then
-        echo "Notfind, Quit"
+    if [[ isValid -eq 0 ]]; then
+        echo "01:Not found:q"
         return 1
     else
         return 0
@@ -88,7 +93,7 @@ function searchAgFile(){
     mapfile -t AG_RESULT < <(eval $query)
     index=1
     cat /dev/null > $HIST_FILE
-    for folder in  "${FOLDER_DISPLAY[@]}"; do
+    for folder in  "${DIRECTORY_SHORTCUT[@]}"; do
         printf -v j "%02d" $index
         COMMAND="$j:${folder}:a"
         echo $COMMAND >> $HIST_FILE
@@ -118,14 +123,17 @@ function excute(){
     readarray -t ARR < $HIST_FILE 
     for s in "${ARR[@]}"; do 
         if [[ "$1" == "${s:0:2}" ]]; then
-            if [[ "$2" == "t" ]]; then
+            if [[ "$2" == "q" ]]; then
+                exit 0
+            elif [[ "$2" == "t" ]]; then
                 IFS=':' read -r -a array <<< "$s"
                 file=${array[1]}
                 line=${array[2]}
                 column=${array[3]}
                 checkNumber $column
                 isLineNumber=$?
-                coproc (eval "$TERM_EMU -e $TEXT_EDITOR \"+normal ${line}G${column}|\" $SEARCH_DIRECTORY${file} " > /dev/null 2>&1 )
+                command="$TERM_SHEL  '$TEXT_EDITOR \"+normal ${line}G${column}|\" $SEARCH_DIRECTORY${file}' "
+                coproc (eval $command)
                 mExit
             elif [[ "$2" == "f" ]]; then
                 IFS=':' read -r -a array <<< "$s"
@@ -134,8 +142,7 @@ function excute(){
                 IFS=':' read -r -a array <<< "$s"
                 fileOpen ${array[1]} 
             else
-                echo "not action"
-                echo "quit"
+                echo "01:not action:q"
             fi
         fi
     done
@@ -146,10 +153,13 @@ function fileOpen(){
     filename="${file##*/}"
     extension="${filename##*.}"
     if [[ "$filename" == "$extension" ]]; then
-        coproc (eval "$TERM_EMU -e $FILE_MANAGER ${file} " > /dev/null 2>&1 )
+        coproc (eval "$TERM_SHEL '$FILE_MANAGER ${file}'" > /dev/null 2>&1 )
+        mExit
+    elif [[ -x "$file" ]]; then
+        coproc ($file> /dev/null 2>&1 )
         mExit
     elif [[ " ${VIM_OPEN_EXT[@]} " =~ " ${extension} " ]]; then
-        coproc ( eval "$TERM_EMU -e $TEXT_EDITOR ${file} " > /dev/null 2>&1 )
+        coproc ( eval "$TERM_SHEL '$TEXT_EDITOR ${file}'" > /dev/null 2>&1 )
         mExit 
     else
         coproc (eval "$OPENER ${file} " > /dev/null 2>&1 )
@@ -177,6 +187,7 @@ then
     ./rofi-ag.sh $query 
 else
     query=$@
+
     COMMAND=${query:0:3}
     last=${COMMAND:2:1}
     action="${query: -1}" 

@@ -1,0 +1,2 @@
+find  *.sh | entr rofi -modi "Global Search":"./rofi-ag.sh" -show "Global Search" \
+-config rofi.rasi

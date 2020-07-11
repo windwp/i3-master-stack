@@ -296,7 +296,6 @@ class I3MasterLayout(object):
                 pass
 
             if(self.isSwapMasterOnNewInstance):
-                print("mark root")
                 self.i3.command('[con_id=%s] mark %s' %
                                 (window.parent.id, workspaceData.rootMark))
                 self.swapMaster(event)
@@ -334,7 +333,6 @@ class I3MasterLayout(object):
                                         % (masterNode.id, firstNode.id))
                         pass
                     else:
-                        print("no slave stack")
                         # no slave stack
                         self.i3.command('[con_id=%s] mark %s' %
                                     (masterNode.id, workspaceData.slaveMark))
@@ -349,6 +347,7 @@ class I3MasterLayout(object):
                     self.i3.command('[con_id=%s] mark %s' %
                                     (window.id, workspaceData.masterMark))
                     if(workspaceData.masterWidth != 0):
+                        print("resize")
                         self.i3.command('[con_id=%s] resize set %s 0'
                                         % (window.id, workspaceData.masterWidth))
                     self.i3.command('[con_id=%s] focus' % (masterNode.id))
