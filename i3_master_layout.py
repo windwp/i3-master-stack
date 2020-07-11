@@ -277,19 +277,26 @@ class I3MasterLayout(object):
             len(workspace.floating_nodes) == 1 and
             len(workspace.floating_nodes[0].nodes) == 1 and
             len(workspace.nodes) == 1 and
-            workspace.floating_nodes[0].nodes[0].id != window.id
+            workspace.floating_nodes[0].nodes[0].id != window.id 
         ):
             # if seconde node open it change first node to tiling mode
             firstWindowId = workspace.floating_nodes[0].nodes[0].id
-            self.i3.command('[con_id=%s] floating disable' % firstWindowId)
-            self.i3.command('[con_id=%s] move left' % firstWindowId)
-            self.i3.command('[con_id=%s] mark %s' % (
-                firstWindowId, self.getWorkSpaceMark(masterMark, workspace.num)))
-            event.container.command('split vertical')
-            if (self.config.firstScreenPercent > 0):
-                self.i3.command('[con_id=%s] resize grow width %s px or %s ppt '
-                                % (firstWindowId, self.config.firstScreenPercent, self.config.firstScreenPercent))
+            ## only auto change on terminal instance
+            if(
+                workspace.floating_nodes[0].nodes[0].ipc_data["window_properties"]["instance"] ==self.config.terminal 
+            ):
+                self.i3.command('[con_id=%s] floating disable' % firstWindowId)
+                self.i3.command('[con_id=%s] move left' % firstWindowId)
+                self.i3.command('[con_id=%s] mark %s' % (
+                    firstWindowId, self.getWorkSpaceMark(masterMark, workspace.num)))
+                if (self.config.firstScreenPercent > 0):
+                    self.i3.command('[con_id=%s] resize grow width %s px or %s ppt '
+                                    % (firstWindowId, self.config.firstScreenPercent, self.config.firstScreenPercent))
+                event.container.command('split vertical')
+                pass
+
             if(self.isSwapMasterOnNewInstance):
+                print("mark root")
                 self.i3.command('[con_id=%s] mark %s' %
                                 (window.parent.id, workspaceData.rootMark))
                 self.swapMaster(event)
@@ -327,7 +334,10 @@ class I3MasterLayout(object):
                                         % (masterNode.id, firstNode.id))
                         pass
                     else:
+                        print("no slave stack")
                         # no slave stack
+                        self.i3.command('[con_id=%s] mark %s' %
+                                    (masterNode.id, workspaceData.slaveMark))
                         if len(window.parent.nodes)>0:
                             self.i3.command('[con_id=%s] swap container with con_id %d'
                                             % (masterNode.id, window.id))
