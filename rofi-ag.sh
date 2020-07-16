@@ -36,14 +36,12 @@ VIM_OPEN_EXT=(
 
 #------------ CONFIG ----------------#
 
-AG_TEXT_QUERY="--column --noheading --follow --depth 5"
+AG_TEXT_QUERY="--column --noheading --follow --depth 6"
 AG_FILE_QUERY='-g "" --follow' 
 
 # MY_PATH="$(dirname "${0}")"
 TMP_DIR="/tmp/rofi/${USER}/"
 HIST_FILE="${TMP_DIR}/history.txt"
-
-
 
 
 if [ ! -d "${TMP_DIR}" ]
@@ -64,8 +62,9 @@ function mExit(){
 function searchAgText(){
     isValid=0
     query=$@
+    printf -v search_text "%q\n" "$@"
     if [[ ${#query} -ge 3 ]]; then
-        query="ag $@ $AG_TEXT_QUERY $SEARCH_DIRECTORY "
+        query="ag $search_text $AG_TEXT_QUERY $SEARCH_DIRECTORY "
         mapfile -t AG_RESULT < <(eval $query)
         index=1
         cat /dev/null > $HIST_FILE
@@ -197,4 +196,3 @@ else
         searchAgText "$@"
     fi
 fi
-
