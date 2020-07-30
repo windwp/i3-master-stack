@@ -42,26 +42,16 @@
 
  `pip3 install i3ipc`
 
-## Run from terminal
+ Install xdotool xprop and xdo
 
  download this script and put it to your i3 config folder and run
+
 ```bash
 cd ~/.config/i3/
 
 git clone git@github.com:windwp/i3-master-stack.git
 
-cd i3-master-stack
-
-chmod +x ./i3_master_layout.py
-
-python3 ./i3_master_layout.py
- 
- ```
- you can run it use bash file [i3_master](./i3_master)
-```bash
- ./i3_master
- ```
-
+```
 ## Run with i3
 
  put it to your i3 config
@@ -76,9 +66,25 @@ python3 ./i3_master_layout.py
  bindsym $mod+alt+m nop master toggle 
 
  ```
+ reload i3 and testing layout
+
+## Run from terminal
+```bash
+cd ~/.config/i3/i3-master-stack
+python3 ./i3_master_layout.py
+ ```
+ you can run it use bash file [i3_master](./i3_master)
+```bash
+ ./i3_master
+ ```
+
 # Config
+
 run script first and it will create a config file to
+
+
 `$HOME/.config/i3/i3_master.ini`
+
 ```ini
 [config]
 terminal = 'Alacritty'
