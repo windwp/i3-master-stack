@@ -1,13 +1,16 @@
 # FEATURE
 
- master and slave layout in i3
+ master and stack layout in i3
 ```
 | ------ | ----- |
 |        |       |
-| Master | Slave |
+| Master | Stack |
 |        |       |
 | ------ | ----- |
 ```
+
+* implement master and stack layout like dwm in i3
+
 * open first terminal in floating mode and default position 
     > you don't need to open the first terminal full screen.
     > It will better if the terminal is display floating center on your screen
@@ -43,6 +46,9 @@
 
  download this script and put it to your i3 config folder and run
 
+`cd ~/.config/i3/`
+`git clone git@github.com:windwp/i3-master-stack.git`
+
 `chmod +x ./i3_master_layout.py`
 
 `python3 ./i3_master_layout.py`
@@ -66,9 +72,8 @@
 
  ```
 # Config
-run script first and it will create a config file at
+run script first and it will create a config file to
 `$HOME/.config/i3/i3_master.ini`
-
 ```ini
 [config]
 terminal = 'Alacritty'
@@ -87,6 +92,7 @@ slaveStack = true
 
 > Note:  Use `xdotool selectwindow getwindowgeometry`  change size and get a good postion on floating window
 
+
 # File manager with swallow 
 
  file manager is not working with the swallow function. You need to add scripts. 
@@ -104,7 +110,7 @@ slaveStack = true
     ```
 # TODO
 
-- [x] Swallow on master is bad
+- [ ] Swallow when stack have 1 instance is bad
 
 - [ ]  Swallow use xprop and xdotool is slow.
 
