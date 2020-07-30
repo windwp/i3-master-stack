@@ -45,17 +45,22 @@
 ## Run from terminal
 
  download this script and put it to your i3 config folder and run
+```bash
+cd ~/.config/i3/
 
-`cd ~/.config/i3/`
-`git clone git@github.com:windwp/i3-master-stack.git`
+git clone git@github.com:windwp/i3-master-stack.git
 
-`chmod +x ./i3_master_layout.py`
+cd i3-master-stack
 
-`python3 ./i3_master_layout.py`
+chmod +x ./i3_master_layout.py
+
+python3 ./i3_master_layout.py
  
+ ```
  you can run it use bash file [i3_master](./i3_master)
-
- `./i3_master`
+```bash
+ ./i3_master
+ ```
 
 ## Run with i3
 
