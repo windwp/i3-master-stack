@@ -193,6 +193,10 @@ else
     if [[ $last == ":" ]]; then
         excute "${COMMAND:0:2}" $action
     else
-        searchAgText "$@"
+        if [[ ${query:0:1} == "'" ]]; then
+            searchAgText "${query:1}"
+        else
+           searchAgText "$query"
+        fi 
     fi
 fi
