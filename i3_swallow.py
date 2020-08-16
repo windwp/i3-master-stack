@@ -59,9 +59,9 @@ class I3Swallow(object):
                 "parent_nodes": len(node.parent.nodes)-1,
             }
 
+            self.masterHandler.isSwallowNext = True
             if(isMaster == True):
                 self.masterHandler.resizeMaster(swallow.id)
-                self.masterHandler.isSwallowNext = True
             return True
         for node in node.nodes:
             if(self.hideSwallowParent(node, windowId, swallow)):

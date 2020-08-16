@@ -312,13 +312,15 @@ class I3MasterLayout(object):
         # swap master and push master to top of stack of slave nodes
         if self.isSwapMasterOnNewInstance:
             isRootParent=  workspaceData.rootMark in window.parent.marks
+            masterNode = self.findChildNodeByMarked(
+                workspace, workspaceData.masterMark)
             if self.isSwallowNext:
                 self.isSwallowNext = False
+                if(masterNode!=None):
+                    self.resizeMaster(masterNode.id)
                 isRootParent = False
                 pass
             if(isRootParent):
-                masterNode = self.findChildNodeByMarked(
-                    workspace, workspaceData.masterMark)
                 slaveNode = self.findChildNodeByMarked(
                     workspace, workspaceData.slaveMark)
                 if(masterNode != None and masterNode.id != window.id):
@@ -558,6 +560,10 @@ def on_close(self, event):
         handler.on_close(event)
     pass
 
+def on_floating (self,event):
+    for handler in (listHandler):
+        handler.on_close(event)
+    pass
 
 def on_new(self, event):
     for handler in listHandler:
