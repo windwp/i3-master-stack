@@ -1,7 +1,26 @@
 #! /bin/bash
 tid=$(xdo id)
+pid=0
+OPTIND=1
+while getopts ":p:" opt; do
+  case ${opt} in
+    p) # process option h
+        pid=$OPTARG
+      ;;
+    :)
+      echo "Invalid option: $OPTARG requires an argument" 1>&2
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+if [[ pid != 0 ]]; then
+   tid=$pid 
+fi
 i3-msg -t send_tick "swallow ${tid}"
+sleep 2 
 # escapce special character on path
 printf -v var "%q\n" "$@"
 echo $var
 eval $var
+
