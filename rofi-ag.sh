@@ -56,7 +56,7 @@ then
 fi
 function mExit(){
     exec 1>&-
-    exit;
+    exit 1;
 }
 
 function searchAgText(){
@@ -82,7 +82,8 @@ function searchAgText(){
     
     if [[ isValid -eq 0 ]]; then
         echo "01:Not found:q"
-        return 1
+        echo "01:Not found:q" >> $HIST_FILE
+        return 0
     else
         return 0
     fi
