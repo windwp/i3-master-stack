@@ -5,9 +5,11 @@ command="./rofi-ag.sh | ${dmenuCommand}"
 status="2" 
 result=" "
 
+
+DIR=`dirname $0`
 TMP_DIR="/tmp/rofi/${USER}/"
 TMP_DIR="/tmp/rofi/${USER}/"
-HIST_FILE="${TMP_DIR}/history.txt"
+HIST_FILE="${TMP_DIR}history.txt"
 
 
 if [ ! -d "${TMP_DIR}" ]
@@ -17,7 +19,7 @@ fi
 
 while [[  "$result" != "exit" && ! -z "$result" ]] 
 do
-    agresult=$( eval "./rofi-ag.sh $result" )
+    agresult=$( eval "$DIR/rofi-ag.sh $result" )
     status=$?
     # echo "STATUS: ${status}"   
     if [[ "${status}" != "1" ]]; then
@@ -33,7 +35,7 @@ do
 done
 
 if [[ $num_matches == 1 ]]; then
-    ./rofi-ag.sh $result   
+    $DIR/rofi-ag.sh $result   
 fi
 
 # echo "done"

@@ -168,7 +168,7 @@ function fileOpen(){
 }
 
 
-if [ -z $@ ]; then
+if [[ -z $@ ]]; then
     searchAgFile ""
 elif [[ "$@" == "quit" ]]; then
     exit 0
