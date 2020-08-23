@@ -1,6 +1,8 @@
 #!/bin/bash
 # use dmenu to excute command because perfomance
-dmenuCommand="dmenu -i -c -l 10 -fn 'Hack' -p 'My Search:' "
+# use need to patch dmenu with center and border with patch
+dmenuCommand="dmenu -i -c -bw 2 -l 10 -fn 'Hack' -p '' "
+# dmenuCommand="dmenu -i -l 10 -fn 'Hack' -p '✟' "
 command="./rofi-ag.sh | ${dmenuCommand}" 
 status="2" 
 result=" "
