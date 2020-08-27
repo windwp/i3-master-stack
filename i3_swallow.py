@@ -176,4 +176,4 @@ class I3Swallow(object):
                 self.nextSwallowId = int(args[1], 16)
             except Exception as e:
                 print("id not valid %s" % args[1])
-        self
+        pass 
