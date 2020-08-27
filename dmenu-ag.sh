@@ -36,8 +36,4 @@ do
     fi
 done
 
-if [[ $num_matches == 1 ]]; then
-    $DIR/rofi-ag.sh $result   
-fi
-
 # echo "done"

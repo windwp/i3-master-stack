@@ -16,7 +16,8 @@ OPENER=xdg-open
 # change to kitty by `kitty -e`
 TERM_SHEL="alacritty -e /bin/zsh -i -c" 
 TEXT_EDITOR=nvim
-FILE_MANAGER="$HOME/.config/vifm/scripts/vifmrun "
+# change to ranger or lf or vifm i need it open in tmux 
+FILE_MANAGER="$HOME/.config/my_scripts/m_tmux_fm.sh "
 
 VIM_OPEN_EXT=(
     "html"
