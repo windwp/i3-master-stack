@@ -80,12 +80,11 @@ python3 ./i3_master_layout.py
 
 # Config
 
-run script first and it will create a config file to
-
+run script first and it will create a config file 
 
 `$HOME/.config/i3/i3_master.ini`
 
-```ini
+``` ini
 [config]
 terminal = 'Alacritty'
 screenWidth = 1300
@@ -97,7 +96,7 @@ swallow = true
 ; different size between master and slave (unit : ppt)
 masterSizePlus = 14  
 
-; new instance on master wll change to master
+; new instance on master will change to master
 slaveStack = true  
 ```
 
@@ -106,7 +105,7 @@ slaveStack = true
 
 # File manager with swallow 
 
- file manager is not working with the swallow function. You need to add scripts. 
+ if your file manager is not working with the swallow function. You need to add scripts. 
  >Example vifm
  * Copy file [swallow](./swallow) to folder `$HOME/.config/vifm/scripts/`.
  * Edit /vifmrc 

@@ -402,12 +402,14 @@ class I3MasterLayout(object):
                                     (lastSwapNodeId))
                     workspace.swapNodeId = 0
                     return
+            pass
             if(masterNode.window != None):
                 self.i3.command('[con_id=%s] focus' % (masterNode.id))
-                workspace.swapNodeId = window.id
+                workspaceData.swapNodeId = window.id
+            pass
             if(len(masterNode.nodes) > 0 and masterNode.nodes[0].window != None):
                 self.i3.command('[con_id=%s] focus' % (masterNode.nodes[0].id))
-                workspace.swapNodeId = window.id
+                workspaceData.swapNodeId = window.id
             pass
     pass
 
