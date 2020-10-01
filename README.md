@@ -49,7 +49,7 @@
 ```bash
 cd ~/.config/i3/
 
-git clone git@github.com:windwp/i3-master-stack.git
+git clone https://github.com/windwp/i3-master-stack.git
 
 ```
 ## Run with i3
