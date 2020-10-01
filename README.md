@@ -57,7 +57,7 @@ git clone https://github.com/windwp/i3-master-stack.git
  put it to your i3 config
 
 ```bash
- exec --no-startup-id  $HOME/.config/i3/i3-master-slave/i3-master
+ exec --no-startup-id  $HOME/.config/i3/i3-master-stack/i3-master
  # swap to master node
  bindsym $mod+m nop swap master 
  # go to master node
