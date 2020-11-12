@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 # ---------------------------------------
 
-import i3ipc
 import argparse
-import subprocess
-import os
 import configparser
+import os
 import shutil
+import subprocess
 from pprint import pprint
 from time import sleep
+
+import i3ipc
+
 import i3_swallow
-
-
 
 rootMark = "root"
 masterMark = "master"
 slaveMark = "slave"
+
 
 class I3MasterConfig(object):
     def __init__(self):
@@ -29,6 +30,7 @@ class I3MasterConfig(object):
         self.isEnableSwallow = True
         self.isSwapMasterOnNewInstance = True  # new instance on master is change to master
     pass
+
 
 def dumpNode(node):
     result = {}
@@ -286,6 +288,7 @@ class I3MasterLayout(object):
 
         if (
             workspaceData.firstWindowId != 0 and
+            window.floating == "auto_off" and
             len(workspace.floating_nodes) >= 1 and
             len(workspace.floating_nodes[0].nodes) >= 1 and
             len(workspace.nodes) == 1 and
