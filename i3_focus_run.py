@@ -34,15 +34,17 @@ class I3FocusRun(object):
 
     def on_focus(self, event):
         window = self.i3.get_tree().find_focused()
-        if (window.ipc_data["window_properties"]["instance"] == "google-chrome"):
-            self.isOnChrome = True
-            event.container.command(
-                "exec xmodmap -e 'keycode 45 = k K k K NoSymbol NoSymbol'")
-        elif (self.isOnChrome == True):
-            self.isOnChrome = False
-            event.container.command(
-                "exec xmodmap -e 'keycode 45 = k K Up NoSymbol NoSymbol NoSymbol'")
+        if (window != None and window.ipc_data !=None and window.ipc_data.get("window_properties") != None):
+            if (window.ipc_data["window_properties"]["instance"] == "google-chrome"):
+                self.isOnChrome = True
+                event.container.command(
+                    "exec xmodmap -e 'keycode 45 = k K k K NoSymbol NoSymbol'")
+            elif (self.isOnChrome == True):
+                self.isOnChrome = False
+                event.container.command(
+                    "exec xmodmap -e 'keycode 45 = k K Up NoSymbol NoSymbol NoSymbol'")
             pass
+        pass
         pass
     def on_tick(self, event):
         pass
