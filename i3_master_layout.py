@@ -12,6 +12,7 @@ from time import sleep
 import i3ipc
 
 import i3_swallow
+import i3_focus_run
 
 rootMark = "root"
 masterMark = "master"
@@ -633,7 +634,10 @@ def main():
         i3, masterConfig.isEnableSwallow, masterMark, masterHander)
     if(masterConfig.isEnableSwallow):
         listHandler.append(swallowHander)
+        pass
+    focusHandler = i3_focus_run.I3FocusRun(i3, args.debug)
     listHandler.append(masterHander)
+    listHandler.append(focusHandler)
     # Subscribe to events
 
     i3.on("window::new", on_new)
