@@ -657,6 +657,8 @@ def readConfig():
     global masterConfig
     configData = config['config']
     if(configData!=None):
+        masterConfig.terminal = configData.get(
+            'terminal', fallback=masterConfig.terminal)
         masterConfig.posX = configData.getint(
             'posX', fallback=masterConfig.posX)
         masterConfig.posY = configData.getint(
