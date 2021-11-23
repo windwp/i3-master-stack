@@ -25,7 +25,7 @@ class I3MasterConfig(object):
         self.screenHeight = 800
         self.posX = 310
         self.posY = 160
-        self.firstScreenPercent = 14  # different size between master and slave (unit : ppt)
+        self.firstScreenPercent = 0  # different size between master and slave (unit : ppt)
         self.limitWindowOnMaster = 2
         self.isEnableSwallow = True
         self.isSwapMasterOnNewInstance = True  # new instance on master is change to master
@@ -56,7 +56,7 @@ def dumpNode(node):
     return result
 
 
-def dumpWorkSpace(workspace: i3ipc.Con):
+def dumpWorkSpace(workspace):
     result = {}
     result["types"] = workspace["type"]
     result["workspace_layout"] = workspace["workspace_layout"]
@@ -322,9 +322,9 @@ class I3MasterLayout(object):
             pass
         # second node is automatic split vertical
         elif (
-            len(window.parent.nodes) == 2 and
-            window.parent.layout == 'splith' and
-            workspaceData.rootMark not in window.parent.marks
+            len(window.parent.nodes) == 2 
+            and window.parent.layout == 'splith' 
+            # and workspaceData.rootMark not in window.parent.marks
         ):
             event.container.command('split vertical')
             pass
@@ -547,8 +547,8 @@ class I3MasterLayout(object):
             workspaceData.isDisable = not workspaceData.isDisable
         elif(command == "nop go master"):
             self.gotoMaster(event)
-        elif("resize" in event.ipc_data["binding"]["command"]):
-            self.getMasterSize()
+        # elif("resize" in event.ipc_data["binding"]["command"]):
+        #     self.getMasterSize()
         elif(self.debug):
             if event.ipc_data["binding"]["command"] == "nop debug":
                 workspace = i3.get_tree().find_focused().workspace()
@@ -673,7 +673,7 @@ def readConfig():
             'slaveStack', fallback=masterConfig.isEnableSwallow)
         masterConfig.firstScreenPercent = configData.getint(
             'masterSizePlus', fallback=14)
-        masterConfig.limitWindowOnMaster = configData.get(
+        masterConfig.limitWindowOnMaster = configData.getint(
             'limitWindowOnMaster', fallback=masterConfig.limitWindowOnMaster)
     pass
 
