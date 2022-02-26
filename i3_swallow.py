@@ -71,7 +71,7 @@ class I3Swallow(object):
     def getParentNodePid(self, node):
         # get parent of pid because terminal spwan shell(zsh or fish) and then spawn that child process
         output = subprocess.getoutput(
-            "ps -o ppid= -p $(ps -o ppid= -p $(xprop -id %d _NET_WM_PID | cut -d' ' -f3 ))" % (node.window))
+            "ps -o ppid= -p $(ps -o ppid= -p %d" % (node.pid))
         return output
 
     def getWindowIdfromPId(self, pid):
